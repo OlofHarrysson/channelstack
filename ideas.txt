@@ -1,0 +1,11 @@
+#
+Run experiment where we add a channel to the input image that is purely noise. The weights for that channel should approach zero.
+
+#
+Add some noise to e.g. the green channel and see if amplitude decreases. This is data augmentation and might increase val score.
+
+#
+Add more channel to see if it becomes better. Grey, blurry, edges
+
+#
+Find images how they look after first conv layer
