@@ -7,77 +7,77 @@ from PIL import Image
 
 # TODO: Normalize tensors with imagennet one??
 def get_train_transforms():
-  transformer = Transformer()
+    transformer = Transformer()
 
-  return transforms.Compose([
-    transformer,
-    transforms.ToTensor(),
-  ])
+    return transforms.Compose([
+        transformer,
+        transforms.ToTensor(),
+    ])
 
 
 def get_val_transforms():
-  transformer = Transformer()
+    transformer = Transformer()
 
-  return transforms.Compose([
-    transformer,
-    transforms.ToTensor(),
-  ])
+    return transforms.Compose([
+        transformer,
+        transforms.ToTensor(),
+    ])
 
 
 class Transformer():
-  def __init__(self):
-    pass
+    def __init__(self):
+        pass
 
-  def __call__(self, im):
-    # im = self.rgb(im)
-    # im = self.rgbnoise(im)
-    im = self.rgbmore(im)
-    return im
+    def __call__(self, im):
+        im = self.rgb(im)
+        # im = self.rgbnoise(im)
+        # im = self.rgbmore(im)
+        return im
 
-  def rgb(self, im):
-    return np.array(im)
+    def rgb(self, im):
+        return np.array(im)
 
-  def rgbnoise(self, im):
-    im_size = im.size
-    noise_layer = np.random.randint(0, 255, im_size, dtype='uint8')
-    return np.dstack((np.array(im), noise_layer))
+    def rgbnoise(self, im):
+        im_size = im.size
+        noise_layer = np.random.randint(0, 255, im_size, dtype='uint8')
+        return np.dstack((np.array(im), noise_layer))
 
-  def rgbmore(self, im):
-    grey = np.array(im.convert(mode='L'))
-    im = np.array(im)
-    rgb_grey = np.dstack((im, grey))
+    def rgbmore(self, im):
+        grey = np.array(im.convert(mode='L'))
+        im = np.array(im)
+        rgb_grey = np.dstack((im, grey))
 
-    edge = iaa.EdgeDetect(alpha=1)(images=rgb_grey)
+        edge = iaa.EdgeDetect(alpha=1)(images=rgb_grey)
 
-    dir_edge = lambda d: iaa.DirectedEdgeDetect(alpha=1, direction=d)(images=
-                                                                      grey)
-    dir_edges = np.array(
-      [dir_edge(d) for d in np.linspace(0, 1, num=3, endpoint=False)])
-    dir_edges = np.transpose(dir_edges, (1, 2, 0))
-    canny = iaa.Canny(alpha=1.0,
-                      hysteresis_thresholds=128,
-                      sobel_kernel_size=4,
-                      deterministic=True,
-                      colorizer=iaa.RandomColorsBinaryImageColorizer(
-                        color_true=255, color_false=0))(images=grey)
+        dir_edge = lambda d: iaa.DirectedEdgeDetect(alpha=1, direction=d)(
+            images=grey)
+        dir_edges = np.array(
+            [dir_edge(d) for d in np.linspace(0, 1, num=3, endpoint=False)])
+        dir_edges = np.transpose(dir_edges, (1, 2, 0))
+        canny = iaa.Canny(alpha=1.0,
+                          hysteresis_thresholds=128,
+                          sobel_kernel_size=4,
+                          deterministic=True,
+                          colorizer=iaa.RandomColorsBinaryImageColorizer(
+                              color_true=255, color_false=0))(images=grey)
 
-    avg_pool = iaa.AveragePooling(2)(images=grey)
-    max_pool = iaa.MaxPooling(2)(images=grey)
-    min_pool = iaa.MinPooling(2)(images=grey)
+        avg_pool = iaa.AveragePooling(2)(images=grey)
+        max_pool = iaa.MaxPooling(2)(images=grey)
+        min_pool = iaa.MinPooling(2)(images=grey)
 
-    return np.dstack(
-      (im, grey, edge, canny, dir_edges, avg_pool, max_pool, min_pool))
+        return np.dstack(
+            (im, grey, edge, canny, dir_edges, avg_pool, max_pool, min_pool))
 
 
 if __name__ == '__main__':
-  from logger import Logger
-  logger = Logger(config=None)
+    from logger import Logger
+    logger = Logger(config=None)
 
-  transformer = Transformer()
-  im = ia.quokka(size=(256, 256))
-  im = Image.fromarray(im)
-  aug_im = transformer(im)
+    transformer = Transformer()
+    im = ia.quokka(size=(256, 256))
+    im = Image.fromarray(im)
+    aug_im = transformer(im)
 
-  aug_im = np.transpose(aug_im, (2, 0, 1))
-  aug_im = np.expand_dims(aug_im, axis=1)
-  logger.log_channels(aug_im)
+    aug_im = np.transpose(aug_im, (2, 0, 1))
+    aug_im = np.expand_dims(aug_im, axis=1)
+    logger.log_channels(aug_im)
