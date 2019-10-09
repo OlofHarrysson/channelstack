@@ -5,34 +5,34 @@ import numpy as np
 from PIL import Image
 
 
-# TODO: Normalize tensors with imagennet one??
-def get_train_transforms():
-  transformer = Transformer()
-
-  return transforms.Compose([
-    transformer,
-    transforms.ToTensor(),
-  ])
-
-
-def get_val_transforms():
-  transformer = Transformer()
-
-  return transforms.Compose([
-    transformer,
-    transforms.ToTensor(),
-  ])
-
-
 class Transformer():
   def __init__(self):
+    self.return_im = []
+    self.add_return_im = lambda im: self.return_im.extend(im)
+
+    # Augmentation mode
+    # self.aug_fn = self.rgb
+    # self.aug_fn = self.rgbnoise
+    self.aug_fn = self.rgbmore
+
+  def get_train_transforms(self):
+    return transforms.Compose([
+      self.rgbmore,
+      transforms.ToTensor(),
+    ])
+
+  def get_val_transforms(self):
+    return transforms.Compose([
+      self.rgbmore,
+      transforms.ToTensor(),
+    ])
+
+  def channel_info(self):
     pass
 
   def __call__(self, im):
-    # im = self.rgb(im)
-    # im = self.rgbnoise(im)
-    im = self.rgbmore(im)
-    return im
+    self.return_im = []
+    return self.aug_fn(im)
 
   def rgb(self, im):
     return np.array(im)
@@ -43,6 +43,9 @@ class Transformer():
     return np.dstack((np.array(im), noise_layer))
 
   def rgbmore(self, im):
+    return_im = []
+    add_return_im = lambda im: return_im.extend(im)
+
     grey = np.array(im.convert(mode='L'))
     im = np.array(im)
     rgb_grey = np.dstack((im, grey))
@@ -65,8 +68,10 @@ class Transformer():
     max_pool = iaa.MaxPooling(2)(images=grey)
     min_pool = iaa.MinPooling(2)(images=grey)
 
-    return np.dstack(
-      (im, grey, edge, canny, dir_edges, avg_pool, max_pool, min_pool))
+    add_return_im([im, grey])
+    add_return_im([edge, dir_edges, canny])
+    add_return_im([avg_pool, max_pool, min_pool])
+    return np.dstack(return_im)
 
 
 if __name__ == '__main__':

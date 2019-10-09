@@ -9,3 +9,6 @@ Add more channel to see if it becomes better. Grey, blurry, edges
 
 #
 Find images how they look after first conv layer
+
+#
+Do backprop & guided backprop to see how much the channels contribute

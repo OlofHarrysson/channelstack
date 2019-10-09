@@ -1,10 +1,13 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
+from pathlib import Path
+
 
 def get_model(config):
   model = MyModel(config)
   return model.to(model.device)
+
 
 class MyModel(nn.Module):
   def __init__(self, config):
@@ -13,7 +16,12 @@ class MyModel(nn.Module):
     self.loss_fn = nn.CrossEntropyLoss()
 
     backbone = models.resnet18(pretrained=config.pretrained)
-    backbone.conv1 = nn.Conv2d(config.im_channels, backbone.conv1.out_channels, kernel_size=7, stride=2, padding=3, bias=False)
+    backbone.conv1 = nn.Conv2d(config.im_channels,
+                               backbone.conv1.out_channels,
+                               kernel_size=7,
+                               stride=2,
+                               padding=3,
+                               bias=False)
     backbone.fc = nn.Linear(backbone.fc.in_features, 10)
 
     self.backbone = backbone
