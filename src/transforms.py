@@ -11,20 +11,20 @@ class Transformer():
     self.add_return_im = lambda im: self.return_im.extend(im)
 
     # Augmentation mode
-    # self.aug_fn = self.rgb
+    self.aug_fn = self.rgb
     # self.aug_fn = self.rgbnoise
-    self.aug_fn = self.rgbmore
+    # self.aug_fn = self.rgbmore
 
   def get_train_transforms(self):
     return transforms.Compose([
-      self.rgbmore,
-      transforms.ToTensor(),
+        self.aug_fn,
+        transforms.ToTensor(),
     ])
 
   def get_val_transforms(self):
     return transforms.Compose([
-      self.rgbmore,
-      transforms.ToTensor(),
+        self.aug_fn,
+        transforms.ToTensor(),
     ])
 
   def channel_info(self):
@@ -55,14 +55,14 @@ class Transformer():
     dir_edge = lambda d: iaa.DirectedEdgeDetect(alpha=1, direction=d)(images=
                                                                       grey)
     dir_edges = np.array(
-      [dir_edge(d) for d in np.linspace(0, 1, num=3, endpoint=False)])
+        [dir_edge(d) for d in np.linspace(0, 1, num=3, endpoint=False)])
     dir_edges = np.transpose(dir_edges, (1, 2, 0))
     canny = iaa.Canny(alpha=1.0,
                       hysteresis_thresholds=128,
                       sobel_kernel_size=4,
                       deterministic=True,
                       colorizer=iaa.RandomColorsBinaryImageColorizer(
-                        color_true=255, color_false=0))(images=grey)
+                          color_true=255, color_false=0))(images=grey)
 
     avg_pool = iaa.AveragePooling(2)(images=grey)
     max_pool = iaa.MaxPooling(2)(images=grey)

@@ -42,8 +42,8 @@ def train(config):
       pbar.update(epoch, batch_i)
 
       # Validation
-      # if optim_steps % val_freq == 0:
-      #   validator.validate(model, val_loader, optim_steps)
+      if optim_steps % val_freq == 0:
+        validator.validate(model, val_loader, optim_steps)
 
       inputs, labels = data
       print(inputs.shape)
