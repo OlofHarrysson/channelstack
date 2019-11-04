@@ -1,4 +1,5 @@
-import pyjokes, random
+import pyjokes
+import random
 from datetime import datetime as dtime
 from collections import OrderedDict
 import pprint
