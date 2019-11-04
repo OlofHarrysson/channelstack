@@ -46,7 +46,6 @@ def train(config):
       #   validator.validate(model, val_loader, optim_steps)
 
       inputs, labels = data
-      print(inputs.shape)
       outputs = model(inputs)
       loss, accuracy = model.calc_loss(outputs, labels, accuracy=True)
       loss.backward()

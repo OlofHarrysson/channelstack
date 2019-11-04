@@ -11,21 +11,18 @@ class Transformer():
     self.add_return_im = lambda im: self.return_im.extend(im)
 
     # Augmentation mode
-    # self.aug_fn = self.rgb
+    self.aug_fn = self.rgb
     # self.aug_fn = self.rgbnoise
-    self.aug_fn = self.rgbmore
+    # self.aug_fn = self.rgbmore
 
   def get_train_transforms(self):
     return transforms.Compose([
-      self.rgbmore,
+      self.aug_fn,
       transforms.ToTensor(),
     ])
 
   def get_val_transforms(self):
-    return transforms.Compose([
-      self.rgbmore,
-      transforms.ToTensor(),
-    ])
+    return self.get_train_transforms()
 
   def channel_info(self):
     pass
