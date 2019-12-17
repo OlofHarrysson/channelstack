@@ -46,26 +46,15 @@ class DefaultConfig():
 
     self.im_channels = 3
 
-  def get_parameters(self):
-    return OrderedDict(sorted(vars(self).items()))
-
-  def __str__(self):
-    return pprint.pformat(dict(self.get_parameters()))
-
 
 @anyfig.config_class
 class Cookie(DefaultConfig):
   def __init__(self):
     super().__init__()
-    ''' Change default parameters here. Like this
-    self.seed = 666          ____
-      ________________________/ O  \___/  <--- Python <3
-     <_#_#_#_#_#_#_#_#_#_#_#_#_____/   \
-    '''
     self.use_gpu = False
     self.validation_freq = 5
     self.max_val_batches = 10
-    self.batch_size = 8
+    self.batch_size = 2
 
 
 @anyfig.config_class

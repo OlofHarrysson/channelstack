@@ -16,9 +16,9 @@ class MyModel(nn.Module):
     self.device = 'cuda' if config.use_gpu else 'cpu'
     self.loss_fn = nn.CrossEntropyLoss()
 
-    # backbone = ColorConvResNet(Bottleneck, [3, 4, 6, 3])
-
-    backbone = models.resnet18(pretrained=False)
+    backbone = ColorConvResNet(Bottleneck, [3, 4, 6, 3])
+    #asd
+    # backbone = models.resnet50(pretrained=False)
     # backbone.conv1 = nn.Conv2d(config.im_channels,
     #                            backbone.conv1.out_channels,
     #                            kernel_size=7,
