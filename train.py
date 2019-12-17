@@ -1,26 +1,14 @@
 import torch, argparse, math
 from torch.optim.lr_scheduler import CosineAnnealingLR
+import anyfig
+
 from src.data.data import get_trainloader, get_valloader
 from src.models.model import get_model
-from src.config.config_util import choose_config
+from src.config.config_classes import Cookie, Colab
 from src.utils.utils import seed_program
 from src.logger import Logger
 from src.utils.utils import ProgressbarWrapper as Progressbar
 from src.validator import Validator
-
-
-def parse_args():
-  p = argparse.ArgumentParser()
-
-  configs = ['cookie', 'colab']
-  p.add_argument('--config',
-                 type=str,
-                 default='cookie',
-                 choices=configs,
-                 help='What config file to choose')
-
-  args, unknown = p.parse_known_args()
-  return args.config
 
 
 def train(config):
@@ -42,8 +30,8 @@ def train(config):
       pbar.update(epoch, batch_i)
 
       # Validation
-      # if optim_steps % val_freq == 0:
-      #   validator.validate(model, val_loader, optim_steps)
+      if optim_steps % val_freq == 0:
+        validator.validate(model, val_loader, optim_steps)
 
       inputs, labels = data
       outputs = model(inputs)
@@ -76,8 +64,7 @@ def setup_train(config):
 
 
 if __name__ == '__main__':
-  config_str = parse_args()
-  config = choose_config(config_str)
+  config = anyfig.setup_config(default_config='Cookie')
   print(config)
   print('\n{}\n'.format(config.save_comment))
   seed_program(config.seed)

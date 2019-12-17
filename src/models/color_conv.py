@@ -1,32 +1,51 @@
 import torch
 import torch.nn as nn
 
-ResNet(groups = 4)
-make it work
 
-class ColorConv(nn.Conv2d):
-  def __init__(self, n_groups):
+class ColorConv(nn.Module):
+  def __init__(self,
+               in_channels,
+               out_channels,
+               kernel_size,
+               stride=1,
+               padding=0,
+               bias=True,
+               n_chunks=4):
     # If first layer, split into 3 chunks. rgb_conv input = 3
     # If not first layer, split into 4 chunks. rgb_conv input = 4
-    inp, out = 1, 8
-    self.r_conv = torch.nn.Conv2d(inp, out)
-    self.g_conv = torch.nn.Conv2d(inp, out)
-    self.b_conv = torch.nn.Conv2d(inp, out)
-    self.rgb_conv = torch.nn.Conv2d(inp * 3, out)
-    self.rgb_conv = torch.nn.Conv2d(inp * 4, out)
+    super().__init__()
+    assert in_channels % n_chunks == 0, f'in_channels has to me a multiple n_chunks: {n_chunks} but was {in_channels}'
+    assert out_channels % 4 == 0, f'out_channel has to be a multiple of 4, was {out_clannel}'
+    in_c, out_c = in_channels // n_chunks, out_channels // 4
+    self.n_chunks = n_chunks
+
+    self.r_conv = torch.nn.Conv2d(in_c,
+                                  out_c,
+                                  kernel_size,
+                                  stride=stride,
+                                  padding=padding,
+                                  bias=bias)
+    self.g_conv = torch.nn.Conv2d(in_c,
+                                  out_c,
+                                  kernel_size,
+                                  stride=stride,
+                                  padding=padding,
+                                  bias=bias)
+    self.b_conv = torch.nn.Conv2d(in_c,
+                                  out_c,
+                                  kernel_size,
+                                  stride=stride,
+                                  padding=padding,
+                                  bias=bias)
+    self.rgb_conv = torch.nn.Conv2d(in_channels,
+                                    out_c,
+                                    kernel_size,
+                                    stride=stride,
+                                    padding=padding,
+                                    bias=bias)
 
   def forward(self, x):
-    # inp = RGB
-    x = (3, 10, 10)
-    x_split = x.split(3)
-    r = self.r_conv(x_split[0])
-    g = self.g_conv(x_split[1])
-    b = self.b_conv(x_split[2])
-    rgb = self.rgb_conv(x)
-
-    # inp = 4-channel
-    x = (4, 10, 10)
-    x_split = x.split(3)
+    x_split = x.chunk(self.n_chunks, dim=1)
     r = self.r_conv(x_split[0])
     g = self.g_conv(x_split[1])
     b = self.b_conv(x_split[2])
@@ -37,19 +56,17 @@ class ColorConv(nn.Conv2d):
 
 def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
   """3x3 convolution with padding"""
-  return nn.Conv2d(in_planes,
+  return ColorConv(in_planes,
                    out_planes,
                    kernel_size=3,
                    stride=stride,
                    padding=dilation,
-                   groups=groups,
-                   bias=False,
-                   dilation=dilation)
+                   bias=False)
 
 
 def conv1x1(in_planes, out_planes, stride=1):
   """1x1 convolution"""
-  return nn.Conv2d(in_planes,
+  return ColorConv(in_planes,
                    out_planes,
                    kernel_size=1,
                    stride=stride,
@@ -107,7 +124,7 @@ class Bottleneck(nn.Module):
     return out
 
 
-class ResNet(nn.Module):
+class ColorConvResNet(nn.Module):
   def __init__(self,
                block,
                layers,
@@ -117,7 +134,7 @@ class ResNet(nn.Module):
                width_per_group=64,
                replace_stride_with_dilation=None,
                norm_layer=None):
-    super(ResNet, self).__init__()
+    super().__init__()
     if norm_layer is None:
       norm_layer = nn.BatchNorm2d
     self._norm_layer = norm_layer
@@ -130,17 +147,18 @@ class ResNet(nn.Module):
       replace_stride_with_dilation = [False, False, False]
     if len(replace_stride_with_dilation) != 3:
       raise ValueError(
-          "replace_stride_with_dilation should be None "
-          "or a 3-element tuple, got {}".format(replace_stride_with_dilation))
+        "replace_stride_with_dilation should be None "
+        "or a 3-element tuple, got {}".format(replace_stride_with_dilation))
     self.groups = groups
     self.base_width = width_per_group
-    self.conv1 = nn.Conv2d(3,
+
+    self.conv1 = ColorConv(3,
                            self.inplanes,
                            kernel_size=7,
                            stride=2,
                            padding=3,
                            bias=False,
-                           groups=3)
+                           n_chunks=3)
     self.bn1 = norm_layer(self.inplanes)
     self.relu = nn.ReLU(inplace=True)
     self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
@@ -164,9 +182,7 @@ class ResNet(nn.Module):
     self.fc = nn.Linear(512 * block.expansion, num_classes)
 
     for m in self.modules():
-      if isinstance(m, nn.Conv2d):
-        nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-      elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+      if isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
         nn.init.constant_(m.weight, 1)
         nn.init.constant_(m.bias, 0)
 
@@ -189,23 +205,23 @@ class ResNet(nn.Module):
       stride = 1
     if stride != 1 or self.inplanes != planes * block.expansion:
       downsample = nn.Sequential(
-          conv1x1(self.inplanes, planes * block.expansion, stride),
-          norm_layer(planes * block.expansion),
+        conv1x1(self.inplanes, planes * block.expansion, stride),
+        norm_layer(planes * block.expansion),
       )
 
     layers = []
     layers.append(
-        block(self.inplanes, planes, stride, downsample, self.groups,
-              self.base_width, previous_dilation, norm_layer))
+      block(self.inplanes, planes, stride, downsample, self.groups,
+            self.base_width, previous_dilation, norm_layer))
     self.inplanes = planes * block.expansion
     for _ in range(1, blocks):
       layers.append(
-          block(self.inplanes,
-                planes,
-                groups=self.groups,
-                base_width=self.base_width,
-                dilation=self.dilation,
-                norm_layer=norm_layer))
+        block(self.inplanes,
+              planes,
+              groups=self.groups,
+              base_width=self.base_width,
+              dilation=self.dilation,
+              norm_layer=norm_layer))
 
     return nn.Sequential(*layers)
 

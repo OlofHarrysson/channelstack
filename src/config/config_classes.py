@@ -3,13 +3,12 @@ import random
 from datetime import datetime as dtime
 from collections import OrderedDict
 import pprint
+import anyfig
 
 
 class DefaultConfig():
-  def __init__(self, config_str):
+  def __init__(self):
     # ~~~~~~~~~~~~~~ General Parameters ~~~~~~~~~~~~~~
-    # The config name
-    self.config = config_str
 
     # An optional comment to differentiate this run from others
     self.save_comment = pyjokes.get_joke()
@@ -54,9 +53,10 @@ class DefaultConfig():
     return pprint.pformat(dict(self.get_parameters()))
 
 
+@anyfig.config_class
 class Cookie(DefaultConfig):
-  def __init__(self, config_str):
-    super().__init__(config_str)
+  def __init__(self):
+    super().__init__()
     ''' Change default parameters here. Like this
     self.seed = 666          ____
       ________________________/ O  \___/  <--- Python <3
@@ -68,8 +68,9 @@ class Cookie(DefaultConfig):
     self.batch_size = 8
 
 
+@anyfig.config_class
 class Colab(DefaultConfig):
-  def __init__(self, config_str):
-    super().__init__(config_str)
+  def __init__(self):
+    super().__init__()
     self.validation_freq = 500
     self.num_workers = 12

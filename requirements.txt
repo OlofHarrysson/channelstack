@@ -5,3 +5,4 @@ visdom>=0.1.8.8
 plotly>=4.0.0
 imgaug>=0.3.0
 pandas>=0.24.2
+anyfig
