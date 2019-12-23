@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torch.nn import Conv2d
 
 
 class ColorConv(nn.Module):
@@ -19,30 +20,30 @@ class ColorConv(nn.Module):
     in_c, out_c = in_channels // n_chunks, out_channels // 4
     self.n_chunks = n_chunks
 
-    self.r_conv = torch.nn.Conv2d(in_c,
-                                  out_c,
-                                  kernel_size,
-                                  stride=stride,
-                                  padding=padding,
-                                  bias=bias)
-    self.g_conv = torch.nn.Conv2d(in_c,
-                                  out_c,
-                                  kernel_size,
-                                  stride=stride,
-                                  padding=padding,
-                                  bias=bias)
-    self.b_conv = torch.nn.Conv2d(in_c,
-                                  out_c,
-                                  kernel_size,
-                                  stride=stride,
-                                  padding=padding,
-                                  bias=bias)
-    self.rgb_conv = torch.nn.Conv2d(in_channels,
-                                    out_c,
-                                    kernel_size,
-                                    stride=stride,
-                                    padding=padding,
-                                    bias=bias)
+    self.r_conv = Conv2d(in_c,
+                         out_c,
+                         kernel_size,
+                         stride=stride,
+                         padding=padding,
+                         bias=bias)
+    self.g_conv = Conv2d(in_c,
+                         out_c,
+                         kernel_size,
+                         stride=stride,
+                         padding=padding,
+                         bias=bias)
+    self.b_conv = Conv2d(in_c,
+                         out_c,
+                         kernel_size,
+                         stride=stride,
+                         padding=padding,
+                         bias=bias)
+    self.rgb_conv = Conv2d(in_channels,
+                           out_c,
+                           kernel_size,
+                           stride=stride,
+                           padding=padding,
+                           bias=bias)
 
   def forward(self, x):
     x_split = x.chunk(self.n_chunks, dim=1)

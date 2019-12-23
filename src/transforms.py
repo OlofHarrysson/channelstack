@@ -3,8 +3,14 @@ import imgaug as ia
 import imgaug.augmenters as iaa
 import numpy as np
 from PIL import Image
+from anyfig import register_module
 
 
+def hello(o):
+  print(o)
+
+
+@config_option
 class Transformer():
   def __init__(self):
     self.return_im = []
